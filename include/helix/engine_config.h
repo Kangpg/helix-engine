@@ -67,6 +67,19 @@ namespace helix::config
 		double worldCellSize = 16.0;
 		double worldVisibilityRadius = 50.0;
 		std::uint32_t worldMaxHitsPerTick = 65536;
+		// [services] / [kafka] — optional C++ adapters, trusted private endpoints.
+		std::string serviceRpcListen = "127.0.0.1:7000";
+		std::string serviceRpcTarget = "127.0.0.1:7000";
+		std::uint32_t serviceDeadlineMs = 10000;
+		std::uint32_t serviceMaxPending = 1024;
+		std::uint32_t serviceMaxMessageBytes = 65536;
+		std::string kafkaBrokers = "127.0.0.1:9092";
+		std::string kafkaTopic = "helix.events";
+		std::string kafkaClientId = "helix";
+		std::string kafkaConsumerGroup = "helix.sample";
+		std::uint32_t kafkaDeliveryTimeoutMs = 5000;
+		std::uint32_t kafkaShutdownTimeoutMs = 5000;
+		std::uint32_t kafkaPollIntervalMs = 10;
 		// [protocol] — selection is consumed by the application composition root.
 		std::string protocolSerializer = "protobuf";
 	};

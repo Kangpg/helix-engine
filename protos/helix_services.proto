@@ -1,0 +1,23 @@
+syntax = "proto3";
+package helix.services.v1;
+
+// event_id is supplied by the application for consumer-side deduplication.
+// Kafka idempotent production does not deduplicate repeated RPC requests.
+message EventEnvelope {
+  uint32 version = 1;
+  string event_id = 2;
+  string key = 3;
+  string type = 4;
+  bytes payload = 5;
+  uint32 producer_node_id = 6;
+  uint64 occurred_unix_ms = 7;
+}
+message PublishReply {
+  string event_id = 1;
+  int32 partition = 2;
+  int64 offset = 3;
+}
+service EventIngress {
+  // Success means broker delivery acknowledgement, not consumer completion.
+  rpc Publish(EventEnvelope) returns (PublishReply);
+}

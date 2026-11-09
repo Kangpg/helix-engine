@@ -6,8 +6,12 @@
 #   # 또는 C ABI DLL:  helix::helix_capi  (런타임 helix.dll)
 include(CMakeFindDependencyMacro)
 find_dependency(Threads)
-if(@HELIX_BUILD_PROTOCOL@)
+if(@HELIX_BUILD_PROTOCOL@ OR @HELIX_BUILD_SERVICES@)
 	find_dependency(Protobuf 36.2.0 EXACT CONFIG)
+endif()
+if(@HELIX_BUILD_SERVICES@)
+	find_dependency(gRPC 1.85.0 EXACT CONFIG)
+	find_dependency(RdKafka 2.16.0 EXACT CONFIG)
 endif()
 include("${CMAKE_CURRENT_LIST_DIR}/helixTargets.cmake")
 

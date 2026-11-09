@@ -57,3 +57,21 @@ node_id = 0               # 노드별 고유 (< 16777216). SessionId 상위 비�
 session_ttl_sec = 30      # 세션 디렉터리 엔트리 TTL(좀비 정리)
 heartbeat_ms = 10000      # TTL 갱신 주기 (session_ttl_sec*1000 보다 작아야 함)
 # 다중 노드 예: 노드1 → HELIX_CLUSTER__ENABLED=true HELIX_CLUSTER__NODE_ID=1 HELIX_NETWORK__PORT=5001
+
+# Optional C++ service module (HELIX_BUILD_SERVICES=ON).
+# Insecure gRPC / PLAINTEXT Kafka: trusted local/private network only.
+[services]
+rpc_listen = "127.0.0.1:7000"
+rpc_target = "127.0.0.1:7000"
+deadline_ms = 10000
+max_pending = 1024
+max_message_bytes = 65536
+
+[kafka]
+brokers = "127.0.0.1:9092"
+topic = "helix.events"
+client_id = "helix"
+consumer_group = "helix.sample"
+delivery_timeout_ms = 5000
+shutdown_timeout_ms = 5000
+poll_interval_ms = 10

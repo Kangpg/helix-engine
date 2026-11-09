@@ -182,8 +182,36 @@ namespace helix::config
 		c.rioBufferSize = rioLimit("buffer_size", c.rioBufferSize);
 		c.rioCompletionQueueSize = rioLimit("completion_queue_size", c.rioCompletionQueueSize);
 
+		const auto serviceLimit = [this](const char* section, const char* key, std::uint32_t fallback)
+		{
+			const auto text = Value(section, key, std::to_string(fallback));
+			std::uint32_t value = 0;
+			const auto result = std::from_chars(text.data(), text.data() + text.size(), value);
+			return result.ec == std::errc{} && result.ptr == text.data() + text.size() ? value : 0u;
+		};
+		c.serviceRpcListen = Value("services", "rpc_listen", c.serviceRpcListen);
+		c.serviceRpcTarget = Value("services", "rpc_target", c.serviceRpcTarget);
+		c.serviceDeadlineMs = serviceLimit("services", "deadline_ms", c.serviceDeadlineMs);
+		c.serviceMaxPending = serviceLimit("services", "max_pending", c.serviceMaxPending);
+		c.serviceMaxMessageBytes = serviceLimit("services", "max_message_bytes", c.serviceMaxMessageBytes);
+		c.kafkaBrokers = Value("kafka", "brokers", c.kafkaBrokers);
+		c.kafkaTopic = Value("kafka", "topic", c.kafkaTopic);
+		c.kafkaClientId = Value("kafka", "client_id", c.kafkaClientId);
+		c.kafkaConsumerGroup = Value("kafka", "consumer_group", c.kafkaConsumerGroup);
+		c.kafkaDeliveryTimeoutMs = serviceLimit("kafka", "delivery_timeout_ms", c.kafkaDeliveryTimeoutMs);
+		c.kafkaShutdownTimeoutMs = serviceLimit("kafka", "shutdown_timeout_ms", c.kafkaShutdownTimeoutMs);
+		c.kafkaPollIntervalMs = serviceLimit("kafka", "poll_interval_ms", c.kafkaPollIntervalMs);
+
 		// --- 검증 ---
 		std::ostringstream err;
+		for (const auto limit : {c.serviceDeadlineMs, c.serviceMaxPending, c.serviceMaxMessageBytes,
+			c.kafkaDeliveryTimeoutMs, c.kafkaShutdownTimeoutMs, c.kafkaPollIntervalMs})
+			if (!limit || limit > 2147483647u) { err << "services/kafka limits must be 1..INT_MAX; "; break; }
+		if (c.serviceMaxMessageBytes < 1000 || c.kafkaPollIntervalMs > c.kafkaDeliveryTimeoutMs || c.kafkaPollIntervalMs > c.kafkaShutdownTimeoutMs)
+			err << "services.max_message_bytes must be >= 1000; kafka.poll_interval_ms must be <= delivery_timeout_ms and shutdown_timeout_ms; ";
+		if (c.serviceRpcListen.empty() || c.serviceRpcTarget.empty() || c.kafkaBrokers.empty() ||
+			c.kafkaTopic.empty() || c.kafkaClientId.empty() || c.kafkaConsumerGroup.empty())
+			err << "services/kafka endpoints and identifiers are required; ";
 		if (c.protocolSerializer.empty()) { err << "protocol.serializer is required; "; }
 		if (c.worldExecution != "sequential" && c.worldExecution != "parallel") { err << "mmo.execution must be sequential|parallel; "; }
 		if (c.worldWorkerThreads == 0 || c.worldBatchSize == 0 || c.worldMaxHitsPerTick == 0 ||
