@@ -94,14 +94,14 @@ target_include_directories(helix
 target_compile_features(helix PUBLIC cxx_std_20)
 helix_platform_setup(helix)
 
-if(BUILD_TESTING)
+if(HELIX_ENABLE_TESTS)
 	add_executable(helix_session_partial_test ${HELIX_SOURCE_ROOT}/tests/session_partial_test.cpp)
 	target_include_directories(helix_session_partial_test PRIVATE ${HELIX_SOURCE_ROOT}/src)
 	target_link_libraries(helix_session_partial_test PRIVATE helix)
 	add_test(NAME session-partial-send COMMAND helix_session_partial_test)
 endif()
 
-if(WIN32 AND BUILD_TESTING)
+if(WIN32 AND HELIX_ENABLE_TESTS)
 	add_executable(helix_windows_backend_test ${HELIX_SOURCE_ROOT}/tests/windows_backend_test.cpp)
 	target_include_directories(helix_windows_backend_test PRIVATE ${HELIX_SOURCE_ROOT}/src)
 	target_link_libraries(helix_windows_backend_test PRIVATE helix)
@@ -109,26 +109,28 @@ if(WIN32 AND BUILD_TESTING)
 	set_tests_properties(windows-iocp-rio PROPERTIES TIMEOUT 30)
 endif()
 
-# --- Phase 1 에코 샘플 (검증용 하니스) ---------------------------------------
-add_executable(helix_echo_phase1 ${HELIX_SOURCE_ROOT}/samples/echo_phase1/main.cpp)
-target_link_libraries(helix_echo_phase1 PRIVATE helix)
+if(HELIX_BUILD_SAMPLES)
+	# --- Phase 1 에코 샘플 (검증용 하니스) ---------------------------------------
+	add_executable(helix_echo_phase1 ${HELIX_SOURCE_ROOT}/samples/echo_phase1/main.cpp)
+	target_link_libraries(helix_echo_phase1 PRIVATE helix)
 
-# --- Phase 6 크로스노드 라우팅 샘플 (scale-out 검증) -------------------------
-add_executable(helix_route_phase6 ${HELIX_SOURCE_ROOT}/samples/route_phase6/main.cpp)
-target_link_libraries(helix_route_phase6 PRIVATE helix)
+	# --- Phase 6 크로스노드 라우팅 샘플 (scale-out 검증) -------------------------
+	add_executable(helix_route_phase6 ${HELIX_SOURCE_ROOT}/samples/route_phase6/main.cpp)
+	target_link_libraries(helix_route_phase6 PRIVATE helix)
 
-# --- Phase 7 KCP 에코 클라이언트 (전송 검증) ---------------------------------
-# ikcp.c 는 helix(static)에 포함돼 있으므로 링크만으로 ikcp_* 심볼을 얻는다.
-# 이 테스트 클라이언트는 WinSock2 직접 사용 → Windows 전용(엔진과 무관).
-if(WIN32)
-	add_executable(helix_kcp_echo_client ${HELIX_SOURCE_ROOT}/samples/kcp_echo_client/main.cpp)
-	target_link_libraries(helix_kcp_echo_client PRIVATE helix)
-	target_include_directories(helix_kcp_echo_client PRIVATE ${HELIX_SOURCE_ROOT}/ThirdParty/kcp)
+	# --- Phase 7 KCP 에코 클라이언트 (전송 검증) ---------------------------------
+	# ikcp.c 는 helix(static)에 포함돼 있으므로 링크만으로 ikcp_* 심볼을 얻는다.
+	# 이 테스트 클라이언트는 WinSock2 직접 사용 → Windows 전용(엔진과 무관).
+	if(WIN32)
+		add_executable(helix_kcp_echo_client ${HELIX_SOURCE_ROOT}/samples/kcp_echo_client/main.cpp)
+		target_link_libraries(helix_kcp_echo_client PRIVATE helix)
+		target_include_directories(helix_kcp_echo_client PRIVATE ${HELIX_SOURCE_ROOT}/ThirdParty/kcp)
+	endif()
+
+	# --- Phase 9 채팅 룸 샘플 (다세션 브로드캐스트 도메인 예제) -------------------
+	add_executable(helix_chat_room ${HELIX_SOURCE_ROOT}/samples/chat_room/main.cpp)
+	target_link_libraries(helix_chat_room PRIVATE helix)
 endif()
-
-# --- Phase 9 채팅 룸 샘플 (다세션 브로드캐스트 도메인 예제) -------------------
-add_executable(helix_chat_room ${HELIX_SOURCE_ROOT}/samples/chat_room/main.cpp)
-target_link_libraries(helix_chat_room PRIVATE helix)
 
 # --- Phase 8: C ABI 공유 라이브러리 (helix.dll) — C#/타 언어 바인딩 대상 -------
 # 엔진 전체 + helix_c.cpp 를 HELIX_BUILD_DLL 로 빌드해 helix_* 심볼을 export.

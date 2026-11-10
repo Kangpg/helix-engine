@@ -9,9 +9,22 @@
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
       "binaryDir": "${sourceDir}/build/windows-x64"
+    },
+    {
+      "name": "windows-x64-engine-only",
+      "displayName": "Windows x64 — 라이브러리만 (샘플·테스트 제외)",
+      "description": "엔진과 모듈 라이브러리만 포함하는 솔루션. 샘플·테스트 프로젝트를 생성하지 않는다.",
+      "inherits": "windows-x64",
+      "binaryDir": "${sourceDir}/build/windows-x64-engine-only",
+      "cacheVariables": {
+        "HELIX_BUILD_SAMPLES": "OFF",
+        "HELIX_BUILD_TESTS": "OFF"
+      }
     }
   ],
   "buildPresets": [
+    { "name": "windows-engine-only-debug",   "configurePreset": "windows-x64-engine-only", "configuration": "Debug" },
+    { "name": "windows-engine-only-release", "configurePreset": "windows-x64-engine-only", "configuration": "Release" },
     { "name": "windows-debug",   "configurePreset": "windows-x64", "configuration": "Debug" },
     { "name": "windows-release", "configurePreset": "windows-x64", "configuration": "Release" }
   ]

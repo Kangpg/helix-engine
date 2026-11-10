@@ -1,0 +1,12 @@
+{
+  "solution": {
+    "path": "Helix.sln",
+    "projects": [
+      "Helix.Engine\\Helix.Engine.csproj",
+      "Helix.Mmo\\Helix.Mmo.csproj",
+      "Helix.Protocol\\Helix.Protocol.csproj",
+      "Helix.Protocol.FlatBuffers\\Helix.Protocol.FlatBuffers.csproj",
+      "Helix.Protocol.MemoryPack\\Helix.Protocol.MemoryPack.csproj"
+    ]
+  }
+}

@@ -18,7 +18,7 @@ install(TARGETS helix_protocol_flatbuffers EXPORT helixTargets ARCHIVE DESTINATI
 install(DIRECTORY include/ DESTINATION include)
 install(FILES "${_schema}" DESTINATION share/helix/protos)
 install(FILES "${helix_flatbuffers_SOURCE_DIR}/LICENSE" DESTINATION share/helix/licenses RENAME flatbuffers-LICENSE)
-if(BUILD_TESTING)
+if(HELIX_ENABLE_TESTS)
 	add_executable(helix_serializer_test ../Helix.Protocol/tests/serializer_test.cpp)
 	target_link_libraries(helix_serializer_test PRIVATE helix_protocol_flatbuffers)
 	target_compile_definitions(helix_serializer_test PRIVATE HELIX_HAS_FLATBUFFERS=1)
