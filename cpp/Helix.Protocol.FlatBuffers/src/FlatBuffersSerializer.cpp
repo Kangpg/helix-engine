@@ -16,6 +16,15 @@ namespace helix::protocol
 			if (!F::VerifyPacketBuffer(verifier)) { return nullptr; }
 			return F::GetPacket(bytes.data());
 		}
+		// 스레드별 빌더 재사용: 호출마다 내부 버퍼를 힙 할당하지 않는다(Clear는 용량을 유지).
+		// Encode는 빌더 사용 중 사용자 코드를 호출하지 않으므로 같은 스레드 재진입이 없다.
+		// 버퍼는 스레드가 인코딩한 가장 큰 패킷 크기로 스레드 종료까지 유지된다.
+		flatbuffers::FlatBufferBuilder& Builder()
+		{
+			thread_local flatbuffers::FlatBufferBuilder builder;
+			builder.Clear();
+			return builder;
+		}
 		void Finish(flatbuffers::FlatBufferBuilder& b, std::uint32_t version, std::uint64_t id, F::Body type, flatbuffers::Offset<void> body, std::string& bytes)
 		{
 			F::FinishPacketBuffer(b, F::CreatePacket(b, version, id, type, body));
@@ -24,7 +33,7 @@ namespace helix::protocol
 	}
 	bool FlatBuffersSerializer::EncodeClient(const messages::ClientPacket& p, std::string& bytes) const
 	{
-		bytes.clear(); flatbuffers::FlatBufferBuilder b;
+		bytes.clear(); auto& b = Builder();
 		F::Body type; flatbuffers::Offset<void> body;
 		if (const auto* m = std::get_if<messages::Move>(&p.body)) { type = F::Body_Move; body = F::CreateMove(b, Write(b, m->destination)).Union(); }
 		else if (const auto* a = std::get_if<messages::Attack>(&p.body)) { type = F::Body_Attack; body = F::CreateAttack(b, a->targetEntityId).Union(); }
@@ -47,7 +56,7 @@ namespace helix::protocol
 	}
 	bool FlatBuffersSerializer::EncodeServer(const messages::ServerPacket& p, std::string& bytes) const
 	{
-		bytes.clear(); flatbuffers::FlatBufferBuilder b;
+		bytes.clear(); auto& b = Builder();
 		F::Body type; flatbuffers::Offset<void> body;
 		if (const auto* v = std::get_if<messages::Welcome>(&p.body)) { type = F::Body_Welcome; body = F::CreateWelcome(b, v->entityId, v->worldId).Union(); }
 		else if (const auto* v = std::get_if<messages::Reply>(&p.body)) { type = F::Body_Reply; body = F::CreateReply(b, static_cast<F::ReplyStatus>(v->status)).Union(); }
